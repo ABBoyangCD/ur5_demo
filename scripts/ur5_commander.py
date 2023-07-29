@@ -43,7 +43,7 @@ class UR5:
                  sim_flag: bool = False):
         self.sim_flag = sim_flag
         if sim_flag is False:
-            self.gripper_pub = rospy.Publisher('Robotiq2FGripperRobotOutput',  # 这个地方
+            self.gripper_pub = rospy.Publisher('Robotiq2FGripperRobotOutput',
                                             outputMsg.Robotiq2FGripper_robot_output, queue_size=10)
             self.gripper_pub.publish(gen_command('r'))
             rospy.sleep(1)
