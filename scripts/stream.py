@@ -1,6 +1,8 @@
 import numpy as np
 import time
 import pyrealsense2 as rs
+import rospy
+from sensor_msgs.msg import Image, CameraInfo
 
 import cv2
 
@@ -49,6 +51,23 @@ class Stream:
         color_image = np.asanyarray(color_frame.get_data())
 
         return color_image, depth_image
+
+    def get_camerainfo(self, intrinsics):
+        camera_info = CameraInfo()
+        camera_info.width = intrinsics.width
+        camera_info.height = intrinsics.height
+        camera_info.distortion_model = "plumb_bob"
+        camera_info.K = [intrinsics.fx, 0,
+                         intrinsics.ppx, 0,
+                         intrinsics.fy, intrinsics.ppy,
+                         0, 0, 1]
+        camera_info.R = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+        camera_info.P = [intrinsics.fx, 0,
+                         intrinsics.ppx, 0,
+                         0, intrinsics.fy,
+                         intrinsics.ppy, 0,
+                         0, 0, 1, 0]
+        return camera_info
 
 
 if __name__ == '__main__':

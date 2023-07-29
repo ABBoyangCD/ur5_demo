@@ -42,9 +42,11 @@ git clone -b melodic-devel-staging https://github.com/ros-industrial/universal_r
 git clone git@github.com:ros-planning/moveit_calibration.git src/moveit_calibration
 
 # get ur5-demo package
-
 # get the demo
 git clone git@github.com:tudorjnu/ur5-demo.git src/ur5_demo
+
+# get the robotiq
+git clone https://github.com/jr-robotics/robotiq.git src/robotiq
 
 # install dependencies
 sudo apt update -qq

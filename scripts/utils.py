@@ -7,6 +7,7 @@ from cv_bridge import CvBridge
 import cv2
 import pyrealsense2 as rs2
 from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output as outputMsg
+from stream import Stream
 
 bridge = CvBridge()
 
@@ -14,7 +15,6 @@ bridge = CvBridge()
 def position2pose(position: list = [0, 0, 0],
                   orientation: list = [0, 0, 0, 1],
                   frame: str = "camera_color_optical_frame") -> PoseStamped:
-
     target_pose = PoseStamped()
     target_pose.header.frame_id = frame
     target_pose.pose.position.x = position[0]
@@ -30,7 +30,6 @@ def position2pose(position: list = [0, 0, 0],
 
 
 def info2intrinsic(camera_info: CameraInfo) -> rs2.intrinsics:
-
     intrinsics = rs2.intrinsics()
     intrinsics.width = camera_info.width
     intrinsics.height = camera_info.height
@@ -94,52 +93,6 @@ def test_project_point(camera_info: CameraInfo):
     _xyz = rs2.rs2_deproject_pixel_to_point(_intrinsics, xy, depth)
 
     print(f'xyz: {xyz}\n', f'_xyz: {_xyz}\n', xyz == _xyz)
-
-
-class Stream:
-    def __init__(self):
-        # Configure depth and color streams
-        self.pipeline = rs.pipeline()
-        self.config = rs.config()
-
-        # Our device is D415, both resolutions are 640 x 480 (W x H)
-        # Set stream type, resolution, format, frame rate
-        self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-        self.config.enable_stream(
-            rs.stream.color, 640, 480, rs.format.bgr8, 30)
-
-        # Intrinsics to be used for calculating 3D position
-        self.intrinsics = None
-
-    def start(self):
-        # Start streaming with configuration
-        pipeline_profile = self.pipeline.start(self.config)
-        # Fetch stream profile for depth stream
-        depth_profile = pipeline_profile.get_stream(rs.stream.depth)
-        # Downcast to video_stream_profile and fetch intrinsics
-        self.intrinsics = depth_profile.as_video_stream_profile().get_intrinsics()
-
-    def stop(self):
-        # Important! Write in the finally block to make sure always called
-        # Stop streaming and release the device resources used by the pipeline
-        self.pipeline.stop()
-
-    def get_images(self):
-        # Wait for a coherent pair of frames: depth and color
-        frames = self.pipeline.wait_for_frames()
-        # Retrieve the first depth and color frame of the fetched frames sets
-        depth_frame = frames.get_depth_frame()
-        color_frame = frames.get_color_frame()
-
-        if not depth_frame or not color_frame:
-            print('Failed to fetch frames set!')
-            return
-
-        # Convert images to numpy arrays (H x W x C)
-        depth_image = np.asanyarray(depth_frame.get_data())
-        color_image = np.asanyarray(color_frame.get_data())
-
-        return color_image, depth_image
 
 
 def gen_command(char):

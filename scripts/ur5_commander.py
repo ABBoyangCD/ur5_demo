@@ -13,72 +13,15 @@ import moveit_msgs.msg
 from moveit_msgs.msg import RobotTrajectory, Grasp, PlaceLocation
 from geometry_msgs.msg import PoseStamped
 import tf
+from gripper_control_test import genCommand as gen_command
 
 roslib.load_manifest('robotiq_2f_gripper_control')
 
+
 # rpy to quaternion
-
-
 def rpy_to_quaternion(roll, pitch, yaw):
     q = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
     return q
-
-
-def gen_command(char):
-    """Update the command according to the character entered by the user."""
-
-    command = outputMsg.Robotiq2FGripper_robot_output()
-
-    if char == 'a':
-        print("Activating the gripper")
-        command = outputMsg.Robotiq2FGripper_robot_output()
-        command.rACT = 1
-        command.rGTO = 1
-        command.rSP = 255
-        command.rFR = 150
-
-    if char == 'r':
-        print("Resetting...")
-        command = outputMsg.Robotiq2FGripper_robot_output()
-        command.rACT = 0
-
-    if char == 'c':
-        command.rPR = 255
-
-    if char == 'o':
-        command.rPR = 0
-
-    # If the command entered is a int, assign this value to rPRA
-    try:
-        command.rPR = int(char)
-        if command.rPR > 255:
-            command.rPR = 255
-        if command.rPR < 0:
-            command.rPR = 0
-    except ValueError:
-        pass
-
-    if char == 'f':
-        command.rSP += 25
-        if command.rSP > 255:
-            command.rSP = 255
-
-    if char == 'l':
-        command.rSP -= 25
-        if command.rSP < 0:
-            command.rSP = 0
-
-    if char == 'i':
-        command.rFR += 25
-        if command.rFR > 255:
-            command.rFR = 255
-
-    if char == 'd':
-        command.rFR -= 25
-        if command.rFR < 0:
-            command.rFR = 0
-
-    return command
 
 
 class UR5:
@@ -96,12 +39,14 @@ class UR5:
                  max_acceleration_scaling_factor: float = 0.1,
                  max_pick_attempts: int = 10,
                  go_home: bool = False,
-                 gripper_length: float = 0.2):
-
-        self.gripper_pub = rospy.Publisher('Robotiq2FGripperRobotOutput',
-                                           outputMsg.Robotiq2FGripper_robot_output, queue_size=10)
-        self.gripper_pub.publish(gen_command('r'))
-        rospy.sleep(1)
+                 gripper_length: float = 0.2,
+                 sim_flag: bool = False):
+        self.sim_flag = sim_flag
+        if sim_flag is False:
+            self.gripper_pub = rospy.Publisher('Robotiq2FGripperRobotOutput',  # 这个地方
+                                            outputMsg.Robotiq2FGripper_robot_output, queue_size=10)
+            self.gripper_pub.publish(gen_command('r'))
+            rospy.sleep(1)
         self.base_orientation = [0.0419532, -0.017782, 0.0330182, 0.9984155]
 
         # set gripper parameters
@@ -279,12 +224,14 @@ class UR5:
         return grasps
 
     def open_gripper(self):
-        self.gripper_pub.publish(gen_command("o"))
-        rospy.sleep(3)
+        if self.sim_flag is False:
+            self.gripper_pub.publish(gen_command("o"))
+            rospy.sleep(3)
 
     def close_gripper(self):
-        self.gripper_pub.publish(gen_command("c"))
-        rospy.sleep(3)
+        if self.sim_flag is False:
+            self.gripper_pub.publish(gen_command("c"))
+            rospy.sleep(3)
 
     @staticmethod
     def quaternion_from_euler(roll, pitch, yaw):
@@ -313,27 +260,40 @@ class UR5:
         rospy.sleep(2)
 
 
-def pose_generator(orientation: list = [0.1745071, 0.9846534, 0.0021049, 0.000709]) -> PoseStamped:
-    x = random.uniform(-0.5, 0.5)
-    y = random.uniform(-0.5, 0.5)
-    z = random.uniform(0.1, 0.5)
+# def pose_generator(orientation: list = [0.1745071, 0.9846534, 0.0021049, 0.000709]) -> PoseStamped:
+#     x = random.uniform(-0.5, 0.5)
+#     y = random.uniform(-0.5, 0.5)
+#     z = random.uniform(0.1, 0.5)
 
+#     pose = PoseStamped()
+#     pose.header.frame_id = "base_link"
+#     pose.pose.position.x = x
+#     pose.pose.position.y = y
+#     pose.pose.position.z = z
+
+#     pose.pose.orientation.x = orientation[0]
+#     pose.pose.orientation.y = orientation[1]
+#     pose.pose.orientation.z = orientation[2]
+#     pose.pose.orientation.w = orientation[3]
+
+#     return pose
+
+def pose_generator(orientation: PoseStamped) -> PoseStamped:
     pose = PoseStamped()
     pose.header.frame_id = "base_link"
-    pose.pose.position.x = x
-    pose.pose.position.y = y
-    pose.pose.position.z = z
+    pose.pose.position.x = orientation.pose.position.x
+    pose.pose.position.y = orientation.pose.position.y
+    pose.pose.position.z = orientation.pose.position.z
 
-    pose.pose.orientation.x = orientation[0]
-    pose.pose.orientation.y = orientation[1]
-    pose.pose.orientation.z = orientation[2]
-    pose.pose.orientation.w = orientation[3]
-
+    pose.pose.orientation.x = orientation.pose.orientation.x
+    pose.pose.orientation.y = orientation.pose.orientation.y
+    pose.pose.orientation.z = orientation.pose.orientation.z
+    pose.pose.orientation.w = orientation.pose.orientation.w
+    print(pose)
     return pose
 
 
 if __name__ == "__main__":
-
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mode", type=str, choices=["real", "sim"],
                     required=False, default="real", help="Select mode: real or sim")
@@ -342,22 +302,21 @@ if __name__ == "__main__":
     args = vars(ap.parse_args())
 
     rospy.init_node("ur5_moveit", anonymous=True)
-
     pre_grasp_pub = rospy.Publisher(
         "/ur5/pre_grasp_pose", PoseStamped, queue_size=1)
-
     grasp_pub = rospy.Publisher(
         "/ur5/grasp_pose", PoseStamped, queue_size=1)
-
     target_pub = rospy.Publisher(
         "/ur5/target_pose", PoseStamped, queue_size=1)
 
     if args["mode"] == "real":
         ur5 = UR5(reference_frame="camera_color_optical_frame",
                   end_effector_link="wrist_3_link",
-                  go_home=False)
+                  go_home=False, sim_flag=False)
     elif args["mode"] == "sim":
-        ur5 = UR5(reference_frame="base_link", go_home=args["home"])
+        ur5 = UR5(reference_frame="base_link",
+                  go_home=args["home"],
+                  sim_flag=True)
 
     def main(target_pose):
 
@@ -429,7 +388,7 @@ if __name__ == "__main__":
             rospy.Subscriber("/vision/pose", PoseStamped, main)
             rospy.spin()
         elif args["mode"] == "sim":
-            main(pose_generator())
+            rospy.Subscriber("/vision/pose", PoseStamped, pose_generator)
             rospy.spin()
     except rospy.ROSInterruptException:
         pass

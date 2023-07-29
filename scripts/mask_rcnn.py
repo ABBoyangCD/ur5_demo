@@ -1,8 +1,11 @@
-import torch
+import numpy as np
+import matplotlib.pyplot as plt
 from torchvision import transforms as T
 from torchvision.models.detection import maskrcnn_resnet50_fpn
+from sklearn.decomposition import PCA
+import torch
 import cv2
-import numpy as np
+plt.rcParams["savefig.bbox"] = 'tight'
 
 
 # Classes names from coco
@@ -24,6 +27,17 @@ COCO_INSTANCE_CATEGORY_NAMES = [
 # Make a different colour for each of the object classes
 COLORS = np.random.uniform(
     0, 255, size=(len(COCO_INSTANCE_CATEGORY_NAMES), 3))
+
+
+def calculate_angle(vector_A, vector_B):
+    dot_product = np.dot(vector_A, vector_B)
+    norm_A = np.linalg.norm(vector_A)
+    norm_B = np.linalg.norm(vector_B)
+    cos_theta = dot_product / (norm_A * norm_B)
+    theta = np.arccos(cos_theta)
+    # 将弧度转换为角度 Convert radians to angle
+    angle_degree = np.degrees(theta)
+    return angle_degree
 
 
 class MaskRCNN:
@@ -129,10 +143,9 @@ class MaskRCNN:
     def get_target_pixel(self,
                          boxes: list,
                          labels: list,
-                         target_class: str = 'keyboard') -> tuple:
-        # Drawing bounding boxes
-        print("Found {} objects".format(len(boxes)), labels)
-
+                         target_class: str) -> tuple:
+        # # Drawing bounding boxes
+        # print("Found {} objects".format(len(boxes)), labels)
         try:
             # Get the index of the target class
             target_class_index = labels.index(target_class)
@@ -157,12 +170,46 @@ class MaskRCNN:
             print(e)
             return None
 
+    def pca(self, masks, boxes, labels, target_class):
+        try:
+            pca = PCA(n_components=2)
+            target_class_index = labels.index(target_class)
+            a = boxes[target_class_index]
+            x1, y1, x2, y2 = int(a[0][0]), int(a[0][1]), int(a[1][0]), int(a[1][1])
+            matrix = masks[target_class_index]
+            matrix = matrix[y2:y1:-1, x1:x2]
+            result = np.where(matrix.T)
+            coordination = np.column_stack((result[0], result[1]))
+            pca = pca.fit(coordination)
+            # 取特征向量与特征值
+            eigenvectors = pca.components_
+            eigenvalues = pca.explained_variance_
+            # 将特征向量按特征值从大到小排序
+            sorted_indices = np.argsort(eigenvalues)[::-1]
+            sorted_eigenvectors = eigenvectors[sorted_indices, :]
+            base_vector = [0, 1]
+            angle = calculate_angle(base_vector, sorted_eigenvectors[0])
+            print(f'Angle: {angle}')
+            return angle
+        except IndexError as e:
+            print(e)
+            return None
+        except ValueError as e:
+            print(e)
+            return None
+
 
 if __name__ == '__main__':
-    image = cv2.imread('./src/ur5_demo/testing/images/color_image.png')
+    image = cv2.imread('testing/images/color_image.png')
     rcnn = MaskRCNN()
     masks, boxes, labels = rcnn.forward(image)
-    segment_image = rcnn.get_segmentation_image(image, masks, boxes, labels)
-    # visualize the image
-    cv2.imshow('Segmented image', segment_image)
-    cv2.waitKey(0)
+    # print(masks)
+    # print(boxes)
+    print(labels)
+    # segment_image = rcnn.get_segmentation_image(image, masks, boxes, labels)
+    target = input("请输入目标：")
+    target_centroid = rcnn.get_target_pixel(boxes, labels, target)
+    angle = rcnn.pca(masks, boxes, labels, target)
+    # cv2.imshow('Segmented image', segment_image)
+    # cv2.waitKey(0)
+    # maskrcnn_publisher()
