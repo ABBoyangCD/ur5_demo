@@ -12,22 +12,28 @@ def stream_publisher():
     rospy.init_node('stream_node', anonymous=True)
     stream = Stream()
     stream.start()
-    while True:
+
+    rgbimage_pub = rospy.Publisher("/camera/color/image_raw",
+                                Image, queue_size=10)
+    depthimage_pub = rospy.Publisher("/camera/depth/image_rect_raw",
+                                    Image, queue_size=10)
+    depthimageintrinsics_pub = rospy.Publisher("/camera/depth/camera_info",
+                                            CameraInfo, queue_size=10)
+    rate = rospy.Rate(0.1)
+
+    while not rospy.is_shutdown():
         color_image, depth_image = stream.get_images()
         camerainfo = stream.get_camerainfo(stream.intrinsics)
         color_ros_image = bridge.cv2_to_imgmsg(color_image, "bgr8")
         depth_ros_image = bridge.cv2_to_imgmsg(depth_image, "passthrough")
         depth_ros_image.encoding = "16UC1"
-        rgbimage_pub = rospy.Publisher("/camera/color/image_raw",
-                                    Image, queue_size=10)
-        depthimage_pub = rospy.Publisher("/camera/depth/image_rect_raw",
-                                        Image, queue_size=10)
-        depthimageintrinsics_pub = rospy.Publisher("/camera/depth/camera_info",
-                                                CameraInfo, queue_size=10)
-        while not rospy.is_shutdown():
-            rgbimage_pub.publish(color_ros_image)
-            depthimage_pub.publish(depth_image)
-            depthimageintrinsics_pub.publish(depth_ros_image)
+
+        rgbimage_pub.publish(color_ros_image)
+        depthimage_pub.publish(depth_ros_image)
+        depthimageintrinsics_pub.publish(camerainfo)
+        # print("Finish Pub")
+
+        rate.sleep()
 
 
 if __name__ == "__main__":
