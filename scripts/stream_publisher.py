@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from stream import Stream
 from sensor_msgs.msg import Image, CameraInfo
 import rospy

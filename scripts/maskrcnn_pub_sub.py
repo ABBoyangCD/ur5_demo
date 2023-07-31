@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+
 # maskrcnn 订阅与发布信息
-from mask_rcnn import MaskRCNN, pca
+from mask_rcnn import MaskRCNN
 import rospy
 from geometry_msgs.msg import PoseStamped, Quaternion
 from sensor_msgs.msg import Image, CameraInfo
