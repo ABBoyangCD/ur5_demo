@@ -48,6 +48,9 @@ git clone git@github.com:tudorjnu/ur5-demo.git src/ur5_demo
 # get the robotiq
 git clone https://github.com/jr-robotics/robotiq.git src/robotiq
 
+# get the camera
+git clone https://github.com/IntelRealSense/realsense-ros.git src/realsense-ros
+
 # install dependencies
 sudo apt update -qq
 rosdep update
@@ -58,5 +61,12 @@ catkin_make
 
 # activate the workspace (ie: source it)
 echo "source devel/setup.bash" >> ~/.bashrc
+```
+4. get RealSense SDK 2.0
+```bash
+#  Do not put this package into the workspace
+git clone https://github.com/IntelRealSense/librealsense.git
+# and follow this page :
+https://dev.intelrealsense.com/docs/compiling-librealsense-for-linux-ubuntu-guide
 ```
 
