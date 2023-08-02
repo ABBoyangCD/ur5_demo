@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<robot name="arm_with_gripper_gazebo" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+ 
+
+  <!-- Declare the arguments for robot type and gripper type -->
+<xacro:arg name="robot_model" default="ur5e"/>
+<xacro:arg name="gripper_model" default="2f_85"/>
+
+ 
+
+  <!-- Automatically find the parameter files for the robot arm -->
+<xacro:property  name="joint_limit_params" value="$(find ur_description)/config/$(arg robot_model)/joint_limits.yaml" />
+<xacro:property  name="kinematics_params" value="$(find ur_description)/config/$(arg robot_model)/default_kinematics.yaml" />
+<xacro:property name="physical_params" value="$(find ur_description)/config/$(arg robot_model)/physical_parameters.yaml" />
+<xacro:property name="visual_params" value="$(find ur_description)/config/$(arg robot_model)/visual_parameters.yaml" />
+<xacro:arg name="transmission_hw_interface" default="hardware_interface/EffortJointInterface" />
+
+ 
+
+  <!-- Import the Gazebo-specific ur_macro.xacro for the specified robot type -->
+<xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro" ns="robot_arm"/>
+
+ 
+
+  <xacro:robot_arm.ur_robot_gazebo 
+    prefix="robot_arm_"
+    joint_limits_parameters_file="${joint_limit_params}"
+    kinematics_parameters_file="${kinematics_params}"
+    physical_parameters_file="${physical_params}"
+    visual_parameters_file="${visual_params}"
+    transmission_hw_interface="$(arg transmission_hw_interface)"
+    safety_limits="false"
+    safety_pos_margin="0.15"
+    safety_k_position="20" />
+
+ 
+
+<xacro:include filename="$(find robotiq_ft_sensor)/../robotiq_$(arg gripper_model)_gripper_gazebo/urdf/robotiq_arg$(arg gripper_model)_macro.xacro" ns="gripper" />
+<xacro:gripper.robotiq_arg2f_85_gazebo 
+    prefix=""
+    transmission_hw_interface="$(arg transmission_hw_interface)" />
+
+ 
+
+ <!-- Instantiate the Gazebo robot for the specified robot type -->
+
+ 
+
+ <!-- Attach the Gazebo model to Gazebo's world frame -->
+<link name="world" />
+<joint name="world_joint" type="fixed">
+<parent link="world" />
+<child link="robot_arm_base_link" />
+<origin xyz="0 0 0" rpy="0 0 0" />
+</joint>
+
+<!-- Link the gripper_base_link to tool0_controller -->
+<joint name="controller_joint" type="fixed">
+<parent link="robot_arm_tool0" />
+<child link="base_link" />
+<origin xyz="0 0 0" rpy="0 0 0" />
+</joint>
+
+ 
+
+</robot>
