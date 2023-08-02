@@ -300,22 +300,21 @@ if __name__ == "__main__":
                     required=False, default=False, help="Go to home position")
     args = vars(ap.parse_args())
 
-    # rospy.init_node("ur5_moveit", anonymous=True)
-    # pre_grasp_pub = rospy.Publisher(
-    #     "/ur5/pre_grasp_pose", PoseStamped, queue_size=1)
-    # grasp_pub = rospy.Publisher(
-    #     "/ur5/grasp_pose", PoseStamped, queue_size=1)
-    # target_pub = rospy.Publisher(
-    #     "/ur5/target_pose", PoseStamped, queue_size=1)
+    rospy.init_node("ur5_moveit", anonymous=True)
+    pre_grasp_pub = rospy.Publisher(
+        "/ur5/pre_grasp_pose", PoseStamped, queue_size=1)
+    grasp_pub = rospy.Publisher(
+        "/ur5/grasp_pose", PoseStamped, queue_size=1)
+    target_pub = rospy.Publisher(
+        "/ur5/target_pose", PoseStamped, queue_size=1)
 
     if args["mode"] == "real":
         ur5 = UR5(reference_frame="camera_color_optical_frame",
                   end_effector_link="wrist_3_link",
-                  go_home=False, sim_flag=False)
+                  go_home=False)
     elif args["mode"] == "sim":
         ur5 = UR5(reference_frame="base_link",
-                  go_home=args["home"],
-                  sim_flag=True)
+                  go_home=args["home"])
 
     def main(target_pose):
 
@@ -325,13 +324,13 @@ if __name__ == "__main__":
         target_pose.pose.orientation.z = orientation[2]
         target_pose.pose.orientation.w = orientation[3]
 
-        # Send the command to the gripper
-        # set the gripper
-        # ur5.gripper_pub.publish(gen_command("r"))
-        rospy.sleep(1)
-        # ur5.gripper_pub.publish(gen_command("a"))
-        # Sleep to give I/O time
-        rospy.sleep(3)
+        # # Send the command to the gripper
+        # # set the gripper
+        # # ur5.gripper_pub.publish(gen_command("r"))
+        # rospy.sleep(1)
+        # # ur5.gripper_pub.publish(gen_command("a"))
+        # # Sleep to give I/O time
+        # rospy.sleep(3)
 
         # remove objects from the scene
 
@@ -358,9 +357,9 @@ if __name__ == "__main__":
         pre_grasp_pose = grasp_pose
         # pre_grasp_pose.pose.position.z -= 0.02
 
-        # pre_grasp_pub.publish(pre_grasp_pose)
-        # grasp_pub.publish(grasp_pose)
-        # target_pub.publish(target_pose)
+        pre_grasp_pub.publish(pre_grasp_pose)
+        grasp_pub.publish(grasp_pose)
+        target_pub.publish(target_pose)
 
         ur5.move_to(pre_grasp_pose)
         rospy.sleep(2)
