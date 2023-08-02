@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+
+ 
+
+<launch>
+<!-- Set the robot type and gripper type as arguments -->
+<arg name="robot_model" default="ur5e" />
+<arg name="gripper_model" default="2f_85" />
+
+ 
+
+<arg name="gazebo_world" default="worlds/empty.world" doc="The '.world' file to load in Gazebo." />
+<arg name="gui" default="true" doc="If true, Gazebo UI is started. If false, only start Gazebo server." />
+<arg name="paused" default="false" doc="If true, start Gazebo in paused mode. If false, start simulation as soon as Gazebo has loaded." />
+<arg name="start_gazebo" default="true" doc="If true, Gazebo will be started. If false, Gazebo will be assumed to have been started elsewhere." />
+
+ 
+
+<arg name="controller_config_file" default="$(find image2position)/gazebo/config/controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/>
+
+ 
+
+<arg name="controllers" default="robot_arm_joint_state_controller robot_arm_eff_joint_traj_controller gripper_joint_state_controller  gripper_controller" doc="Controllers that are activated by default."/>
+
+ 
+
+  <!-- robot_state_publisher configuration -->
+<arg name="tf_prefix" default="" doc="tf_prefix used for the robot."/>
+<arg name="tf_pub_rate" default="500" doc="Rate at which robot_state_publisher should publish transforms."/>
+
+ 
+
+  <!-- Launch Gazebo with the robot and gripper URDF -->
+<include file="$(find gazebo_ros)/launch/empty_world.launch" if="$(arg start_gazebo)">
+<arg name="world_name" value="$(arg gazebo_world)"/>
+<arg name="paused" value="$(arg paused)"/>
+<arg name="gui" value="$(arg gui)"/>
+</include>
+
+ 
+
+  <!-- Load the URDF and spawn the robot and gripper -->
+<param name="robot_description" command="$(find xacro)/xacro '$(find image2position)/urdf/model.xacro' robot_model:=$(arg robot_model) gripper_model:=$(arg gripper_model)" />
+
+ 
+
+  <!-- Spawn the robot in Gazebo -->
+<node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+          args="-urdf -param robot_description -model arm_with_gripper_gazebo" />
+
+ 
+
+  <!-- Load and start the controllers listed in the 'controllers' arg. -->
+<rosparam file="$(arg controller_config_file)" command="load"/>
+<node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner"
+           args="$(arg controllers)" output="screen" respawn="false" />
+
+ 
+
+ 
+
+<!-- Robot state publisher -->
+<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+<param name="publish_frequency" type="double" value="$(arg tf_pub_rate)" />
+<param name="tf_prefix" value="$(arg tf_prefix)" />
+</node>
+
+ 
+
+</launch>
