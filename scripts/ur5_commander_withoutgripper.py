@@ -355,7 +355,6 @@ if __name__ == "__main__":
                   go_home=False)
     elif args["mode"] == "sim":
         ur5 = UR5(reference_frame="robot_arm_base_link", 
-                  end_effector_link="robot_arm_wrist_3_link",
                   go_home=args["home"])
 
     def main(target_pose):
