@@ -41,7 +41,7 @@
 
 
   <!-- Launch Gazebo with the robot and gripper URDF -->
-<include file="$(find gazebo_ros)/launch/empty_world.launch" if="$(arg start_gazebo)">
+<include file="$(find gazebo_ros)/launch/empty_world.launch" >
 <arg name="world_name" value="$(arg gazebo_world)"/>
 <arg name="paused" value="$(arg paused)"/>
 <arg name="gui" value="$(arg gui)"/>
