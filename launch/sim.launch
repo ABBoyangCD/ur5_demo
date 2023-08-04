@@ -65,6 +65,8 @@
   <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
     args="--stopped $(arg stopped_controllers)" output="screen" respawn="false" />
 
+<!-- (start your robot's MoveIt! stack, e.g. include its moveit_planning_execution.launch) -->
+  <include file="$(find ur5e_moveit_config)/launch/moveit_planning_execution.launch"/>
  
 
 </node>
