@@ -69,8 +69,6 @@
   <include file="$(find ur5e_moveit_config)/launch/moveit_planning_execution.launch"/>
  
 
-</node>
-
  
 
 </launch>
