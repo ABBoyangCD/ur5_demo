@@ -21,14 +21,25 @@
  
 
 <arg name="controllers" default="robot_arm_gripper_joint_state_controller robot_arm_eff_joint_traj_controller gripper_controller" doc="Controllers that are activated by default."/>
-
+<arg name="stopped_controllers" default="robot_arm_joint_group_eff_controller"/>
  
 
   <!-- robot_state_publisher configuration -->
 <arg name="tf_prefix" default="" doc="tf_prefix used for the robot."/>
 <arg name="tf_pub_rate" default="500" doc="Rate at which robot_state_publisher should publish transforms."/>
 
+
+  <!-- Load the URDF and spawn the robot and gripper -->
+<param name="robot_description" command="$(find xacro)/xacro '$(find image2position)/urdf/model.xacro' robot_model:=$(arg robot_model) gripper_model:=$(arg gripper_model)" />
+
  
+
+<!-- Robot state publisher -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="$(arg tf_pub_rate)" />
+    <param name="tf_prefix" value="$(arg tf_prefix)" />
+  </node>
+
 
   <!-- Launch Gazebo with the robot and gripper URDF -->
 <include file="$(find gazebo_ros)/launch/empty_world.launch" if="$(arg start_gazebo)">
@@ -39,14 +50,9 @@
 
  
 
-  <!-- Load the URDF and spawn the robot and gripper -->
-<param name="robot_description" command="$(find xacro)/xacro '$(find image2position)/urdf/model.xacro' robot_model:=$(arg robot_model) gripper_model:=$(arg gripper_model)" />
-
- 
-
   <!-- Spawn the robot in Gazebo -->
 <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-          args="-urdf -param robot_description -model arm_with_gripper_gazebo" />
+          args="-urdf -param robot_description -model arm_with_gripper_gazebo -spawn_z 0.1" />
 
  
 
@@ -55,14 +61,13 @@
 <node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner"
            args="$(arg controllers)" output="screen" respawn="false" />
 
- 
+
+<!-- Load other controllers, but do not start them -->
+  <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
+    args="--stopped $(arg stopped_controllers)" output="screen" respawn="false" />
 
  
 
-<!-- Robot state publisher -->
-<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
-<param name="publish_frequency" type="double" value="$(arg tf_pub_rate)" />
-<param name="tf_prefix" value="$(arg tf_prefix)" />
 </node>
 
  
