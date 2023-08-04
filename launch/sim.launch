@@ -20,7 +20,7 @@
 
  
 
-<arg name="controllers" default="robot_arm_joint_state_controller robot_arm_eff_joint_traj_controller gripper_joint_state_controller  gripper_controller" doc="Controllers that are activated by default."/>
+<arg name="controllers" default="robot_arm_gripper_joint_state_controller robot_arm_eff_joint_traj_controller gripper_controller" doc="Controllers that are activated by default."/>
 
  
 
