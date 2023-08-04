@@ -51,7 +51,7 @@
 
   <!-- Spawn the robot in Gazebo -->
 <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-          args="-urdf -param robot_description -model arm_with_gripper_gazebo -spawn_z 0.1" />
+          args="-urdf -param robot_description -model robot_arm_with_gripper -spawn_z 0.1" />
 
  
 
