@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="arm_with_gripper_gazebo" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="ur5e_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
  
 
