@@ -1,10 +1,10 @@
 joint_names:
-  - shoulder_pan_joint
-  - shoulder_lift_joint
-  - elbow_joint
-  - wrist_1_joint
-  - wrist_2_joint
-  - wrist_3_joint
+  - robot_arm_shoulder_pan_joint
+  - robot_arm_shoulder_lift_joint
+  - robot_arm_elbow_joint
+  - robot_arm_wrist_1_joint
+  - robot_arm_wrist_2_joint
+  - robot_arm_wrist_3_joint
 joint_values:
   -
     - 0.9117887020111084
