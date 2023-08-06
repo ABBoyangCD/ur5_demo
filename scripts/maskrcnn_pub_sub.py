@@ -3,41 +3,45 @@
 from mask_rcnn import MaskRCNN
 import rospy
 from geometry_msgs.msg import PoseStamped
+import pyrealsense2 as rs2
 from sensor_msgs.msg import Image, CameraInfo
 from utils import position2pose, project_point, img_to_cv2
 import message_filters
 from cv_bridge import CvBridge
 import time
+import tf
 
 bridge = CvBridge()
 
 
-def maskecnn_publisher(rgb_image, depth_image, depth_image_intrinsics):
+def maskecnn_publisher(rgb_image, depth_image, intrinsics):
+    # 以下注释在测试时均不取消
     mask_rcnn = MaskRCNN()
-    segment_pub = rospy.Publisher(
-        '/vision/segmentation', Image, queue_size=1)
-    pose_pub = rospy.Publisher(
-        '/vision/pose', PoseStamped, queue_size=1)
+    # segment_pub = rospy.Publisher(
+    #     '/vision/segmentation', Image, queue_size=1)
+    # pose_pub = rospy.Publisher(
+    #     '/vision/pose', PoseStamped, queue_size=1)
 
     rgb_image = img_to_cv2(rgb_image)
     depth_image = img_to_cv2(depth_image)
+    # info2intrinsic(camerainfo)
     masks, boxes, labels = mask_rcnn.forward(rgb_image)
-    # print(labels)
+    print(labels)
     image = mask_rcnn.get_segmentation_image(
         rgb_image, masks, boxes, labels)
-    target = input("请输入你想抓取的目标")
+
+    target = input("pleasse input what you want to grasp:")
     target_centroid = mask_rcnn.get_target_pixel(boxes, labels, target)
     target_centroid_xyz = project_point(
-        depth_image, target_centroid, depth_image_intrinsics)
-    angle = mask_rcnn.pca(masks, boxes, labels, target)
-    orientation = [target_centroid_xyz[0],
-                   target_centroid_xyz[1],
-                   target_centroid_xyz[2],
-                   angle]
-    target_pose = position2pose(target_centroid_xyz, orientation)
-    while not rospy.is_shutdown():
-        segment_pub.publish(bridge.cv2_to_imgmsg(image, 'bgr8'))
-        pose_pub.publish(target_pose)
+        depth_image, target_centroid, intrinsics)  # list
+    angle = mask_rcnn.pca(masks, boxes, labels, target)  # thate
+
+    orientation = tf.transformations.quaternion_from_euler(0, 0, angle)
+    target_pose = position2pose(target_centroid_xyz, list(orientation))  # PoseStamped
+    print(target_pose)
+    # while not rospy.is_shutdown():
+    #     segment_pub.publish(bridge.cv2_to_imgmsg(image, 'bgr8'))
+    #     pose_pub.publish(target_pose)
 
 
 def maskrcnn_subscriber():
@@ -46,12 +50,12 @@ def maskrcnn_subscriber():
         "/camera/color/image_raw", Image)
     depth_image = message_filters.Subscriber(
         "/camera/depth/image_rect_raw", Image)
-    depth_image_intrinsics = message_filters.Subscriber(
-        "/camera/depth/camera_info", CameraInfo)
+    intrinsics = message_filters.Subscriber(
+        "/camera/depth/intrinsics", rs2.intrinsics())
     ts = message_filters.ApproximateTimeSynchronizer(
         [rgb_image, depth_image,
-            depth_image_intrinsics], 10, 0.1, allow_headerless=True)
-    print("Finish Sub")
+            intrinsics], 10, 0.1, allow_headerless=True)
+    # print("Finish Sub")
     ts.registerCallback(maskecnn_publisher)
     time.sleep(3)
     rospy.spin()

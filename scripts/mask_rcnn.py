@@ -31,15 +31,13 @@ COLORS = np.random.uniform(
     0, 255, size=(len(COCO_INSTANCE_CATEGORY_NAMES), 3))
 
 
-def calculate_angle(vector_A, vector_B):
+def calculate_theta(vector_A, vector_B):
     dot_product = np.dot(vector_A, vector_B)
     norm_A = np.linalg.norm(vector_A)
     norm_B = np.linalg.norm(vector_B)
     cos_theta = dot_product / (norm_A * norm_B)
     theta = np.arccos(cos_theta)
-    # 将弧度转换为角度 Convert radians to angle
-    angle_degree = np.degrees(theta)
-    return angle_degree
+    return theta
 
 
 class MaskRCNN:
@@ -105,7 +103,7 @@ class MaskRCNN:
             results = ''
             for i in range(thresholded_preds_count):
                 results += f'{labels[i]}: {scores[i]} '
-            print(results)
+            # print(results)
 
         return masks, boxes, labels
 
@@ -161,8 +159,8 @@ class MaskRCNN:
             y1, y2 = max(y1, 0), min(y2, 479)
 
             target_centroid = (int((x1 + x2) / 2), int((y1 + y2) / 2))
-            print(f'Found {target_class} at index {target_class_index}')
-            print(f'Target centroid: {target_centroid}')
+            # print(f'Found {target_class} at index {target_class_index}')
+            # print(f'Target centroid: {target_centroid}')
 
             return target_centroid
         except IndexError as e:
@@ -190,8 +188,8 @@ class MaskRCNN:
             sorted_indices = np.argsort(eigenvalues)[::-1]
             sorted_eigenvectors = eigenvectors[sorted_indices, :]
             base_vector = [0, 1]
-            angle = calculate_angle(base_vector, sorted_eigenvectors[0])
-            print(f'Angle: {angle}')
+            angle = calculate_theta(base_vector, sorted_eigenvectors[0])
+            # print(f'Angle: {angle}')
             return angle
         except IndexError as e:
             print(e)

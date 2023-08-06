@@ -54,22 +54,22 @@ class Stream:
 
         return color_image, depth_image
 
-    def get_camerainfo(self, intrinsics):
-        camera_info = CameraInfo()
-        camera_info.width = intrinsics.width
-        camera_info.height = intrinsics.height
-        camera_info.distortion_model = "plumb_bob"
-        camera_info.K = [intrinsics.fx, 0,
-                         intrinsics.ppx, 0,
-                         intrinsics.fy, intrinsics.ppy,
-                         0, 0, 1]
-        camera_info.R = [1, 0, 0, 0, 1, 0, 0, 0, 1]
-        camera_info.P = [intrinsics.fx, 0,
-                         intrinsics.ppx, 0,
-                         0, intrinsics.fy,
-                         intrinsics.ppy, 0,
-                         0, 0, 1, 0]
-        return camera_info
+    # def get_camerainfo(self, intrinsics):
+    #     camera_info = CameraInfo()
+    #     camera_info.width = intrinsics.width
+    #     camera_info.height = intrinsics.height
+    #     camera_info.distortion_model = "plumb_bob"
+    #     camera_info.K = [intrinsics.fx, 0,
+    #                      intrinsics.ppx, 0,
+    #                      intrinsics.fy, intrinsics.ppy,
+    #                      0, 0, 1]
+    #     camera_info.R = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+    #     camera_info.P = [intrinsics.fx, 0,
+    #                      intrinsics.ppx, 0,
+    #                      0, intrinsics.fy,
+    #                      intrinsics.ppy, 0,
+    #                      0, 0, 1, 0]
+    #     return camera_info
 
 
 if __name__ == '__main__':
