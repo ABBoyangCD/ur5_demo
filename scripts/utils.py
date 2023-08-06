@@ -46,14 +46,25 @@ def info2intrinsic(camera_info: CameraInfo) -> rs2.intrinsics:
 
 def project_point(depth_image: np.ndarray,
                   xy: list,
-                  camera_info: CameraInfo) -> list:
+                  intrinsics: rs2.intrinsics) -> list:
     depth = depth_image[xy[0], xy[1]] / 1000
     # convert 2D position to 3D position
-    xyz = [depth * (xy[0] - camera_info.K[2]) / camera_info.K[0],
-           depth * (xy[1] - camera_info.K[5]) / camera_info.K[5],
+    xyz = [depth * (xy[0] - intrinsics.ppx) / intrinsics.fx,
+           depth * (xy[1] - intrinsics.ppy) / intrinsics.ppy,
            depth]
 
     return xyz
+
+# def project_point(depth_image: np.ndarray,
+#                   xy: list,
+#                   camera_info: CameraInfo) -> list:
+#     depth = depth_image[xy[0], xy[1]] / 1000
+#     # convert 2D position to 3D position
+#     xyz = [depth * (xy[0] - camera_info.K[2]) / camera_info.K[0],
+#            depth * (xy[1] - camera_info.K[5]) / camera_info.K[5],
+#            depth]
+
+#     return xyz
 
 
 def img_to_cv2(img):
