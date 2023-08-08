@@ -32,7 +32,7 @@ def stream_publisher():
         rgbimage_pub.publish(color_ros_image)
         depthimage_pub.publish(depth_ros_image)
         intrinsic_pub.publish(stream.intrinsics)
-        # print("Finish Pub")
+        print("Finish Pub")
 
         rate.sleep()
 

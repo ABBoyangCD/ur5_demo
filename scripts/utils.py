@@ -55,6 +55,7 @@ def project_point(depth_image: np.ndarray,
 
     return xyz
 
+
 # def project_point(depth_image: np.ndarray,
 #                   xy: list,
 #                   camera_info: CameraInfo) -> list:

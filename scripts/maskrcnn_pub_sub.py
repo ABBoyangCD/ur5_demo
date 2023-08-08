@@ -14,7 +14,7 @@ import tf
 bridge = CvBridge()
 
 
-def maskecnn_publisher(rgb_image, depth_image, intrinsics):
+def maskecnn_publisher(rgb_image, depth_image, depth_image_intrinsics):
     # 以下注释在测试时均不取消
     mask_rcnn = MaskRCNN()
     # segment_pub = rospy.Publisher(
@@ -24,7 +24,6 @@ def maskecnn_publisher(rgb_image, depth_image, intrinsics):
 
     rgb_image = img_to_cv2(rgb_image)
     depth_image = img_to_cv2(depth_image)
-    # info2intrinsic(camerainfo)
     masks, boxes, labels = mask_rcnn.forward(rgb_image)
     print(labels)
     image = mask_rcnn.get_segmentation_image(
@@ -33,7 +32,7 @@ def maskecnn_publisher(rgb_image, depth_image, intrinsics):
     target = input("pleasse input what you want to grasp:")
     target_centroid = mask_rcnn.get_target_pixel(boxes, labels, target)
     target_centroid_xyz = project_point(
-        depth_image, target_centroid, intrinsics)  # list
+        depth_image, target_centroid, depth_image_intrinsics)  # list
     angle = mask_rcnn.pca(masks, boxes, labels, target)  # thate
 
     orientation = tf.transformations.quaternion_from_euler(0, 0, angle)
@@ -50,11 +49,11 @@ def maskrcnn_subscriber():
         "/camera/color/image_raw", Image)
     depth_image = message_filters.Subscriber(
         "/camera/depth/image_rect_raw", Image)
-    intrinsics = message_filters.Subscriber(
-        "/camera/depth/intrinsics", rs2.intrinsics())
+    depth_image_intrinsics = message_filters.Subscriber(
+        "/camera/depth/camera_info", CameraInfo)
     ts = message_filters.ApproximateTimeSynchronizer(
         [rgb_image, depth_image,
-            intrinsics], 10, 0.1, allow_headerless=True)
+            depth_image_intrinsics], 10, 0.1, allow_headerless=True)
     # print("Finish Sub")
     ts.registerCallback(maskecnn_publisher)
     time.sleep(3)
