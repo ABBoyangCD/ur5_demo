@@ -181,10 +181,10 @@ class MaskRCNN:
             result = np.where(matrix.T)
             coordination = np.column_stack((result[0], result[1]))
             pca = pca.fit(coordination)
-            # 取特征向量与特征值
+            # eignvector and eigenvalues
             eigenvectors = pca.components_
             eigenvalues = pca.explained_variance_
-            # 将特征向量按特征值从大到小排序
+            # sorted 
             sorted_indices = np.argsort(eigenvalues)[::-1]
             sorted_eigenvectors = eigenvectors[sorted_indices, :]
             base_vector = [0, 1]
@@ -207,7 +207,7 @@ if __name__ == '__main__':
     # print(boxes)
     print(labels)
     # segment_image = rcnn.get_segmentation_image(image, masks, boxes, labels)
-    target = input("请输入目标：")
+    target = input("please input your target:")
     target_centroid = rcnn.get_target_pixel(boxes, labels, target)
     angle = rcnn.pca(masks, boxes, labels, target)
     # cv2.imshow('Segmented image', segment_image)

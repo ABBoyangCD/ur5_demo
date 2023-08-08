@@ -5,6 +5,7 @@ from sensor_msgs.msg import Image, CameraInfo
 import rospy
 from cv_bridge import CvBridge
 import pyrealsense2 as rs2
+from utils import intrinsic2info
 
 bridge = CvBridge()
 
@@ -18,8 +19,8 @@ def stream_publisher():
                                    Image, queue_size=10)
     depthimage_pub = rospy.Publisher("/camera/depth/image_rect_raw",
                                      Image, queue_size=10)
-    intrinsic_pub = rospy.Publisher("/camera/depth/intrinsics",
-                                    rs2.intrinsics(), queue_size=10)
+    camerainfo_pub = rospy.Publisher("/camera/depth/camera_info",
+                                    CameraInfo, queue_size=10)
     rate = rospy.Rate(0.1)
 
     while not rospy.is_shutdown():
@@ -28,10 +29,11 @@ def stream_publisher():
         color_ros_image = bridge.cv2_to_imgmsg(color_image, "bgr8")
         depth_ros_image = bridge.cv2_to_imgmsg(depth_image, "passthrough")
         depth_ros_image.encoding = "16UC1"
+        camera_info = intrinsic2info(stream.intrinsics)
 
         rgbimage_pub.publish(color_ros_image)
         depthimage_pub.publish(depth_ros_image)
-        intrinsic_pub.publish(stream.intrinsics)
+        camerainfo_pub.publish(camera_info)
         print("Finish Pub")
 
         rate.sleep()

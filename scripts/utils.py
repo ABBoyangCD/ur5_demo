@@ -44,28 +44,41 @@ def info2intrinsic(camera_info: CameraInfo) -> rs2.intrinsics:
     return intrinsics
 
 
-def project_point(depth_image: np.ndarray,
-                  xy: list,
-                  intrinsics: rs2.intrinsics) -> list:
-    depth = depth_image[xy[0], xy[1]] / 1000
-    # convert 2D position to 3D position
-    xyz = [depth * (xy[0] - intrinsics.ppx) / intrinsics.fx,
-           depth * (xy[1] - intrinsics.ppy) / intrinsics.ppy,
-           depth]
+def intrinsic2info(intrinsics: rs2.intrinsics) -> CameraInfo:
+    camera_info = CameraInfo()
+    camera_info.width = intrinsics.width
+    camera_info.height = intrinsics.height
+    camera_info.K = [intrinsics.fx, 0.0, intrinsics.ppx,
+                     0.0, intrinsics.fy, intrinsics.ppy,
+                     0.0, 0.0, 1.0]
+    camera_info.D = intrinsics.coeffs
+    camera_info.distortion_model = "plumb_bob"
 
-    return xyz
+    return camera_info
 
 
 # def project_point(depth_image: np.ndarray,
 #                   xy: list,
-#                   camera_info: CameraInfo) -> list:
+#                   intrinsics: rs2.intrinsics) -> list:
 #     depth = depth_image[xy[0], xy[1]] / 1000
 #     # convert 2D position to 3D position
-#     xyz = [depth * (xy[0] - camera_info.K[2]) / camera_info.K[0],
-#            depth * (xy[1] - camera_info.K[5]) / camera_info.K[5],
+#     xyz = [depth * (xy[0] - intrinsics.ppx) / intrinsics.fx,
+#            depth * (xy[1] - intrinsics.ppy) / intrinsics.ppy,
 #            depth]
 
 #     return xyz
+
+
+def project_point(depth_image: np.ndarray,
+                  xy: list,
+                  camera_info: CameraInfo) -> list:
+    depth = depth_image[xy[0], xy[1]] / 1000
+    # convert 2D position to 3D position
+    xyz = [depth * (xy[0] - camera_info.K[2]) / camera_info.K[0],
+           depth * (xy[1] - camera_info.K[5]) / camera_info.K[5],
+           depth]
+
+    return xyz
 
 
 def img_to_cv2(img):
